@@ -1,87 +1,36 @@
-"use client";
+// /app/shop/search/page.jsx
+import { notFound } from "next/navigation";
+import SearchProductsClient from "./SearchProductsClient";
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
-import { shopApi } from "@/lib/api/shop";
-import ProductCard from "@/components/shop/ProductCard";
+// Server Component
+export default async function SearchPage({ searchParams }) {
+  // Extract query params server-side
+  const categories = searchParams.categories?.split(",") || [];
+  const brands = searchParams.brands?.split(",") || [];
+  const minPrice = Number(searchParams.minPrice) || 0;
+  const maxPrice = Number(searchParams.maxPrice) || 10000;
 
-function SearchResults({ searchParams }) {
-  const router = useRouter();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [wishlist, setWishlist] = useState([]);
+  // If no filters selected, redirect to /shop
+  if (!categories.length && !brands.length && !searchParams.minPrice && !searchParams.maxPrice) {
+    notFound(); // Can also redirect if you prefer
+  }
 
-  // Toggle wishlist
-  const toggleWishlist = (productId) => {
-    setWishlist((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
-  };
+  // Fetch products server-side
+  let products = [];
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/shop/filtered-products`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ categories, brands, minPrice, maxPrice }),
+      cache: "no-store", // Ensure fresh data
+    });
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const categories = searchParams.get("categories")?.split(",") || [];
-        const brands = searchParams.get("brands")?.split(",") || [];
-        const minPrice = Number(searchParams.get("minPrice") || 0);
-        const maxPrice = Number(searchParams.get("maxPrice") || 10000);
+    if (res.ok) {
+      products = await res.json();
+    }
+  } catch (err) {
+    console.error("Failed to fetch products:", err);
+  }
 
-        // Redirect if no filters selected
-        if (
-          !categories.length &&
-          !brands.length &&
-          !searchParams.get("minPrice") &&
-          !searchParams.get("maxPrice")
-        ) {
-          router.push("/shop");
-          return;
-        }
-
-        const data = await shopApi.getFilteredProducts({
-          categories,
-          brands,
-          minPrice,
-          maxPrice,
-        });
-        setProducts(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [searchParams.toString(), router]);
-
-  if (loading) return <p className="p-4">Loading...</p>;
-  if (!products.length) return <p className="p-4">No products found.</p>;
-
-  return (
-    <div className="p-8 md:p-10 lg:p-12">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            wishlist={wishlist}
-            toggleWishlist={toggleWishlist}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export default function SearchPage() {
-  const searchParams = useSearchParams();
-
-  return (
-    <Suspense fallback={<p className="p-4">Loading search results...</p>}>
-      <SearchResults searchParams={searchParams} />
-    </Suspense>
-  );
+  return <SearchProductsClient initialProducts={products} />;
 }
