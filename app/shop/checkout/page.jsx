@@ -172,7 +172,7 @@ export default function CheckoutPage() {
         
         // Redirect after 2 seconds
         setTimeout(() => {
-          router.push(`/order-success/${response.data.orderNumber}`)
+          router.push(`/shop`)
         }, 2000)
       } else {
         setError(response.message || 'Failed to create order')
