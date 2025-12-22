@@ -1,0 +1,131 @@
+# Sleek & Shine E-Commerce Database Schema
+
+This file outlines all the data structures needed for the Sleek & Shine cosmetics shop.
+Create these tables in your database (Supabase, Neon, or any PostgreSQL database).
+
+## USERS TABLE
+Purpose: Store customer and admin account information
+Columns:
+  - id (UUID/INT): Unique identifier
+  - firstName (VARCHAR): Customer's first name
+  - lastName (VARCHAR): Customer's last name
+  - email (VARCHAR, UNIQUE): Email address
+  - password (VARCHAR): Hashed password (bcrypt)
+  - phone (VARCHAR, NULLABLE): Phone number
+  - role (VARCHAR): 'customer' or 'admin'
+  - createdAt (TIMESTAMP): Account creation date
+  - updatedAt (TIMESTAMP): Last update date
+
+## PRODUCTS TABLE
+Purpose: Store product information
+Columns:
+  - id (UUID/INT): Unique product identifier
+  - name (VARCHAR): Product name
+  - description (TEXT): Product description
+  - price (DECIMAL): Product price
+  - category (VARCHAR): Product category (Skincare, Makeup, Haircare, etc.)
+  - brand (VARCHAR): Brand name
+  - stock (INT): Available quantity
+  - rating (DECIMAL): Average product rating (0-5)
+  - reviews (INT): Number of reviews
+  - image (VARCHAR): Image URL
+  - images (JSON/ARRAY): Multiple product images
+  - details (JSON): Additional product details and specifications
+  - attributes (JSON): Custom product attributes (e.g., size, color)
+  - createdAt (TIMESTAMP)
+  - updatedAt (TIMESTAMP)
+
+## PRODUCT_REVIEWS TABLE
+Purpose: Store customer reviews
+Columns:
+  - id (UUID/INT): Unique review identifier
+  - productId (UUID/INT): Foreign key to PRODUCTS
+  - userId (UUID/INT): Foreign key to USERS
+  - rating (INT): Rating 1-5
+  - title (VARCHAR): Review title
+  - comment (TEXT): Review comment
+  - createdAt (TIMESTAMP)
+
+## PRODUCT_QNA TABLE
+Purpose: Store product Q&A
+Columns:
+  - id (UUID/INT): Unique Q&A identifier
+  - productId (UUID/INT): Foreign key to PRODUCTS
+  - userId (UUID/INT): Foreign key to USERS
+  - question (TEXT): Customer question
+  - answer (TEXT, NULLABLE): Admin answer
+  - answerBy (UUID/INT, NULLABLE): Foreign key to USERS (admin)
+  - createdAt (TIMESTAMP)
+  - answeredAt (TIMESTAMP, NULLABLE)
+
+## CATEGORIES TABLE
+Purpose: Store product categories
+Columns:
+  - id (UUID/INT): Unique identifier
+  - name (VARCHAR): Category name (Skincare, Makeup, etc.)
+  - description (TEXT): Category description
+  - image (VARCHAR): Category image URL
+  - createdAt (TIMESTAMP)
+
+## ORDERS TABLE
+Purpose: Store customer orders
+Columns:
+  - id (UUID/INT): Unique order identifier
+  - userId (UUID/INT): Foreign key to USERS
+  - orderNumber (VARCHAR, UNIQUE): Order reference number
+  - status (VARCHAR): 'pending', 'processing', 'shipped', 'delivered', 'cancelled'
+  - subtotal (DECIMAL): Order subtotal
+  - shipping (DECIMAL): Shipping cost
+  - tax (DECIMAL): Tax amount
+  - total (DECIMAL): Total amount
+  - shippingAddress (JSON): Address details
+  - paymentMethod (VARCHAR): 'card', 'paypal'
+  - paymentStatus (VARCHAR): 'pending', 'completed', 'failed'
+  - createdAt (TIMESTAMP)
+  - updatedAt (TIMESTAMP)
+
+## ORDER_ITEMS TABLE
+Purpose: Store individual items in each order
+Columns:
+  - id (UUID/INT): Unique identifier
+  - orderId (UUID/INT): Foreign key to ORDERS
+  - productId (UUID/INT): Foreign key to PRODUCTS
+  - quantity (INT): Quantity ordered
+  - price (DECIMAL): Price at time of purchase
+  - productName (VARCHAR): Product name snapshot
+  - productImage (VARCHAR): Product image snapshot
+
+## WISHLIST TABLE
+Purpose: Store customer wishlist items
+Columns:
+  - id (UUID/INT): Unique identifier
+  - userId (UUID/INT): Foreign key to USERS
+  - productId (UUID/INT): Foreign key to PRODUCTS
+  - createdAt (TIMESTAMP)
+
+## CART_ITEMS TABLE (Optional - if persisting server-side)
+Purpose: Store temporary shopping cart items
+Columns:
+  - id (UUID/INT): Unique identifier
+  - userId (UUID/INT): Foreign key to USERS
+  - productId (UUID/INT): Foreign key to PRODUCTS
+  - quantity (INT): Quantity in cart
+  - addedAt (TIMESTAMP)
+
+## ADMIN_DASHBOARD_STATS TABLE (Optional)
+Purpose: Store dashboard analytics
+Columns:
+  - id (UUID/INT): Unique identifier
+  - date (DATE): Date of stats
+  - totalRevenue (DECIMAL): Total revenue for day
+  - totalOrders (INT): Total orders for day
+  - totalUsers (INT): Total active users
+
+## AUTHENTICATION NOTE:
+Currently using localStorage for demo. For production, implement:
+- Backend authentication with JWT tokens
+- Secure password hashing (bcrypt)
+- Row-Level Security (RLS) on all tables
+- Refresh token mechanism
+- Email verification for new accounts
+- Password reset functionality
