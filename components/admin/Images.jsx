@@ -16,8 +16,10 @@ export default function Images({ images, setImages }) {
     try {
       setUploading(true)
       const res = await uploadApi.uploadImages(files)
-      const urls = res.data?.urls || []
-      setImages(prev => [...prev, ...urls])
+      if (res.success && Array.isArray(res.data)) {
+        // Append full image objects to state
+        setImages(prev => [...prev, ...res.data])
+      }
     } catch (err) {
       console.error("Image upload failed", err)
       alert("Image upload failed")
@@ -56,7 +58,11 @@ export default function Images({ images, setImages }) {
           <div className="grid grid-cols-3 gap-2">
             {images.map((img, idx) => (
               <div key={idx} className="relative w-full aspect-square rounded border bg-muted group">
-                <img src={img.url || "/placeholder.svg"} alt={`Product ${idx + 1}`} className="w-full h-full object-cover rounded" />
+                <img
+                  src={img.imageUrl || "/placeholder.svg"}
+                  alt={`Product ${idx + 1}`}
+                  className="w-full h-full object-cover rounded"
+                />
                 <button
                   type="button"
                   onClick={() => handleRemoveImage(idx)}
@@ -64,7 +70,11 @@ export default function Images({ images, setImages }) {
                 >
                   <X className="w-4 h-4" />
                 </button>
-                {idx === 0 && <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">Primary</div>}
+                {idx === 0 && (
+                  <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                    Primary
+                  </div>
+                )}
               </div>
             ))}
           </div>
